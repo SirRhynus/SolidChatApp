@@ -4,7 +4,7 @@
 
 ### Full
 
-![Full app mock-up 1](./img/full1.png)
+![Full app mock-up 1](./imgs/full1.png)
 ![Full app mock-up 2](./imgs/full2.png)
 
 ### Overview page / sidebar
@@ -13,7 +13,7 @@
 
 ### Profile Editor page
 
-[![Profile Editor](./imgs/profile.png)](#profile)
+[![Profile Editor](./imgs/profile.png)](#profile-editor)
 
 ### Chatroom page
 
