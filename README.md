@@ -1,3 +1,5 @@
+# The Plan
+
 [The Plan](./plan/README.md)
 
 # Vue 3 + Vite
