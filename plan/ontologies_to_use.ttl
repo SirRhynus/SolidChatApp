@@ -1,6 +1,14 @@
+@prefix foaf: <http://xmlns.com/foaf/0.1/>.
+@prefix vcard: <http://www.w3.org/2018/vcard-new/1#>.
+@prefix sioc: <http://rdfs.org/sioc/ns>.
+@prefix solid: <http://www.w3.org/ns/solid/terms#>.
+@prefix dc: <http://purl.org/dc/terms/>.
+
 <person> a foaf:Person, foaf:OnlineAccount, sioc:UserAccount ;
-	foaf:name, vcard:fn "Name"@en ;
-	foaf:img, sioc:avatar <picture> ;
+	foaf:name "Name"@en ;
+	vcard:fn "Name"@en ;	# Alternative for foaf:name
+	foaf:img <picture> ;
+	sioc:avatar <picture> ;	# Alternative for foaf:img
 	foaf:knows <friend> ;
 	solid:privateTypeIndex <privateIndex> .
 	
@@ -18,8 +26,8 @@
 	
 
 # <privateIndex>
-@prefix solid: <http://www.w3.org/ns/solid/terms#>
-@prefix sioc: <http://rdfs.org/sioc.ns#>
+@prefix solid: <http://www.w3.org/ns/solid/terms#>.
+@prefix sioc: <http://rdfs.org/sioc.ns#>.
 
 <>
 	a solid:TypeIndex ;
