@@ -1,0 +1,32 @@
+<person> a foaf:Person, foaf:OnlineAccount, sioc:UserAccount ;
+	foaf:name, vcard:fn "Name"@en ;
+	foaf:img, sioc:avatar <picture> ;
+	foaf:knows <friend> ;
+	solid:privateTypeIndex <privateIndex> .
+	
+
+<chatroom> a sioct:ChatChannel ;
+	dc:creator <person> ;
+	dc:title "Title"@en ;
+	dc:created "Datetime"@en ;
+	sioc:container_of <message> .
+
+<message> a sioct:InstantMessage ;
+	sioc:has_creator <person> ;
+	dc:created "Datetime"@en ;
+	sioc:content "content"@en .
+	
+
+# <privateIndex>
+@prefix solid: <http://www.w3.org/ns/solid/terms#>
+@prefix sioc: <http://rdfs.org/sioc.ns#>
+
+<>
+	a solid:TypeIndex ;
+	a solid:UnlistedDocument .
+
+<#hash> a solid:TypeRegistration ;
+	solid:forClass sioct:ChatChannel ;
+	solid:instanceContainer <chatrooms/> .
+
+
