@@ -7,6 +7,7 @@
 <person> a foaf:Person, foaf:OnlineAccount, sioc:UserAccount ;
 	foaf:name "Name"@en ;
 	vcard:fn "Name"@en ;	# Alternative for foaf:name
+	foaf:nick "Nickname"@en ;
 	foaf:img <picture> ;
 	sioc:avatar <picture> ;	# Alternative for foaf:img
 	foaf:knows <friend> ;
