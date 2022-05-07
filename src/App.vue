@@ -1,11 +1,11 @@
 <script setup>
-import Friend from './components/Friend.vue';
-// This starter template is using Vue 3 <script setup> SFCs
-// Check out https://vuejs.org/api/sfc-script-setup.html#script-setup
+import Login from './pages/Login.vue';
+import Profile from './pages/Profile.vue';
 </script>
 
 <template>
-<Friend webID="https://ruben.verborgh.org/profile/#me" />
+<Profile v-if="session.isLoggedIn" :webID="session.webId"></Profile>
+<Login v-else />
 </template>
 
 <style>
