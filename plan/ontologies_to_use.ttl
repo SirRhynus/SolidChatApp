@@ -9,6 +9,7 @@
 	vcard:fn "Name"@en ;	# Alternative for foaf:name
 	foaf:nick "Nickname"@en ;
 	foaf:img <picture> ;
+	vcard:hasPhoto <picture> ;
 	sioc:avatar <picture> ;	# Alternative for foaf:img
 	foaf:knows <friend> ;
 	solid:privateTypeIndex <privateIndex> .
