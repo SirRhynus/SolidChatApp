@@ -1,10 +1,11 @@
 <script setup>
 import Login from './pages/Login.vue';
 import Profile from './pages/Profile.vue';
+
 </script>
 
 <template>
-<Profile v-if="session.isLoggedIn" :webID="session.webId"></Profile>
+<Profile v-if="session.info.isLoggedIn" :webID="session.info.webId"></Profile>
 <Login v-else />
 </template>
 
