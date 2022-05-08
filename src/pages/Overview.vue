@@ -1,15 +1,24 @@
 <script>
+import { getSolidDataset, getThing, getUrl } from "@inrupt/solid-client";
+import { FOAF, VCARD } from "@inrupt/vocab-common-rdf";
+import NewButton from "../components/NewButton.vue"
 export default {
     data() {
         return {
             size: 80,
-            image: "https://groep25.webdev.ilabt.imec.be/rien/profile/foto_gezicht.jpg",
-            chatrooms: ["Room 1", "Room 2", "Room 3"]
-        }
+            image: null,
+            chatrooms: ["Room 1", "Room 2", "Room 3"],
+            console: console
+        };
     },
     async beforeCreate() {
-
-    }
+        const ds = await getSolidDataset(this.session.info.webId, {
+            fetch: this.session.fetch
+        });
+        const profile = getThing(ds, this.session.info.webId);
+        this.image = getUrl(profile, "http://rdfs.org/sioc/ns#avatar") || getUrl(profile, VCARD.hasPhoto) || getUrl(profile, FOAF.img);
+    },
+    components: { NewButton }
 }
 </script>
 <template>
@@ -23,10 +32,19 @@ export default {
             <a><h2>{{ chatroom }}</h2></a>
         </li>
     </ul>
+    <NewButton @click="console.log">
+        <h3>Create</h3>
+        <h3>Add</h3>
+    </NewButton>
 </div>
 </template>
 <style>
+#test {
+    bottom: 100px;
+}
+
 .overview {
+    position: relative;
     width: 18rem;
     height: 100vh;
     float: left;
@@ -49,5 +67,11 @@ export default {
 
 #chatrooms {
     list-style: none;
+}
+
+.overview > .new-button {
+    position: absolute;
+    left: 3px;
+    bottom: 3px;
 }
 </style>

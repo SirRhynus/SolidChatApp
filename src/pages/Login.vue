@@ -17,7 +17,7 @@ export default {
 <section id="login">
     <label>Login with your identity provider</label>
     <div class="row">
-        <input type="url" placeholder="https://your-identity-provider" >
+        <input type="url" placeholder="https://your-identity-provider" value="https://groep25.webdev.ilabt.imec.be/" >
         <button @click="loginToIssuer">Go</button>
     </div>
 </section>
