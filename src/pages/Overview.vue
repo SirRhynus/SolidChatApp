@@ -1,14 +1,28 @@
 <script>
-import { getSolidDataset, getThing, getUrl } from "@inrupt/solid-client";
+import { getSolidDataset, getThing, getUrl, getPodUrlAll } from "@inrupt/solid-client";
 import { FOAF, VCARD } from "@inrupt/vocab-common-rdf";
 import NewButton from "../components/NewButton.vue"
+import Form from "../components/Form.vue"
 export default {
     data() {
         return {
             size: 80,
             image: null,
             chatrooms: ["Room 1", "Room 2", "Room 3"],
-            console: console
+            add_chatroom: {
+                is_visible: false,
+                data: {
+                    url: ''
+                }
+            },
+            create_chatroom: {
+                is_visible: false,
+                data: {
+                    creator: this.session.info.webId,
+                    name: '',
+                    created: new Date()
+                }
+            }
         };
     },
     async beforeCreate() {
@@ -18,7 +32,18 @@ export default {
         const profile = getThing(ds, this.session.info.webId);
         this.image = getUrl(profile, "http://rdfs.org/sioc/ns#avatar") || getUrl(profile, VCARD.hasPhoto) || getUrl(profile, FOAF.img);
     },
-    components: { NewButton }
+    methods: {
+        submit_add_chatroom() {
+            console.log(this.add_chatroom.data);
+            this.add_chatroom.is_visible = false;
+        },
+        submit_create_chatroom() {
+            this.create_chatroom.data.created = new Date();
+            console.log(this.create_chatroom.data);
+            this.create_chatroom.is_visible = false;
+        }
+    },
+    components: { NewButton, Form }
 }
 </script>
 <template>
@@ -32,10 +57,18 @@ export default {
             <a><h2>{{ chatroom }}</h2></a>
         </li>
     </ul>
-    <NewButton @click="console.log">
-        <h3>Create</h3>
-        <h3>Add</h3>
+    <NewButton>
+        <button @click="create_chatroom.is_visible=true">Create</button>
+        <button @click="add_chatroom.is_visible=true">Add</button>
     </NewButton>
+    <Form v-if="add_chatroom.is_visible" @submit="submit_add_chatroom" @cancel="add_chatroom.is_visible=false">
+        <label for="url">URL: </label>
+        <input type="url" name="url" v-model="add_chatroom.data.url">
+    </Form>
+    <Form v-if="create_chatroom.is_visible" @submit="submit_create_chatroom" @cancel="create_chatroom.is_visible=false">
+        <label for="name">Chatroom name: </label>
+        <input name="name" v-model="create_chatroom.data.name">
+    </Form>
 </div>
 </template>
 <style>

@@ -2,7 +2,6 @@
 import Login from './pages/Login.vue';
 import Overview from './pages/Overview.vue';
 import Profile from './pages/Profile.vue';
-
 </script>
 
 <template>

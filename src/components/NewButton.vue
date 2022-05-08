@@ -19,7 +19,7 @@ export default {
         <button @click="e => { open=!open; $emit('click', e); }">
             <b>+</b>
         </button>
-        <div v-if="open && $slots.default">
+        <div v-if="$slots.default" :class="open ? 'active' : ''">
             <slot></slot>
         </div>
     </div>
@@ -60,8 +60,17 @@ div.new-button > button {
     padding-left: v-bind(size);
     padding-right: 1em;
     border: 2px solid black;
+    border-radius: 50%;
+    transform: scale(0.1, 0.2);
+    overflow: hidden;
+    transition: transform 1s, border-radius 1s;
+    transform-origin: 10% 90%;
+}
+
+.new-button > div.active {
     border-radius: 10%;
     border-bottom-left-radius: calc(v-bind(size)/2);
+    transform: scale(1, 1);
 }
 
 .new-button > div > * {
