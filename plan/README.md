@@ -23,7 +23,7 @@
 
 ### Image
 
-Gets an image url as prop and displays that image in a circle. If necessary size gets also passed on.
+Gets an image `src` url and an optional `size` (default=100px) as props and displays that image in a circle.
 
 ### Friend
 
