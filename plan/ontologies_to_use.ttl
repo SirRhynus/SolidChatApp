@@ -29,7 +29,7 @@
 
 # <privateIndex>
 @prefix solid: <http://www.w3.org/ns/solid/terms#>.
-@prefix sioc: <http://rdfs.org/sioc.ns#>.
+@prefix sioct: <http://rdfs.org/sioc/types#>.
 
 <>
 	a solid:TypeIndex ;

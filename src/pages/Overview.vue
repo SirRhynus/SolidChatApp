@@ -1,14 +1,16 @@
 <script>
-import { getSolidDataset, getThing, getUrl, getPodUrlAll } from "@inrupt/solid-client";
-import { FOAF, VCARD } from "@inrupt/vocab-common-rdf";
-import NewButton from "../components/NewButton.vue"
-import Form from "../components/Form.vue"
+import { getSolidDataset, getStringEnglish, getThing, getUrl } from "@inrupt/solid-client";
+import { FOAF, VCARD, DCTERMS } from "@inrupt/vocab-common-rdf";
+import { getChatroomAll } from '../modules/chatapp_functions';
+import NewButton from "../components/NewButton.vue";
+import Form from "../components/Form.vue";
+
 export default {
     data() {
         return {
             size: 80,
             image: null,
-            chatrooms: ["Room 1", "Room 2", "Room 3"],
+            chatrooms: [],
             add_chatroom: {
                 is_visible: false,
                 data: {
@@ -31,6 +33,7 @@ export default {
         });
         const profile = getThing(ds, this.session.info.webId);
         this.image = getUrl(profile, "http://rdfs.org/sioc/ns#avatar") || getUrl(profile, VCARD.hasPhoto) || getUrl(profile, FOAF.img);
+        this.chatrooms = await getChatroomAll(this.session.info.webId, { fetch: this.session.fetch });
     },
     methods: {
         submit_add_chatroom() {
@@ -41,6 +44,9 @@ export default {
             this.create_chatroom.data.created = new Date();
             console.log(this.create_chatroom.data);
             this.create_chatroom.is_visible = false;
+        },
+        getTitle(chatroom) {
+            return getStringEnglish(chatroom, DCTERMS.title);
         }
     },
     components: { NewButton, Form }
@@ -54,7 +60,7 @@ export default {
     </div>
     <ul id="chatrooms">
         <li v-for="chatroom in chatrooms">
-            <a><h2>{{ chatroom }}</h2></a>
+            <a><h2>{{ getTitle(chatroom) }}</h2></a>
         </li>
     </ul>
     <NewButton>
