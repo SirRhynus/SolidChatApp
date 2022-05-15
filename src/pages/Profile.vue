@@ -1,10 +1,10 @@
 <script>
 import { getSolidDataset, getStringNoLocale, getThing, getUrl, getUrlAll } from "@inrupt/solid-client"
 import { FOAF, VCARD } from "@inrupt/vocab-common-rdf";
+import { SIOC } from "../modules/vocab";
 import Editable from "../components/Editable.vue";
 
 export default {
-    props: ["webID"],
     data() {
         return {
             name: null,
@@ -14,13 +14,13 @@ export default {
         };
     },
     async beforeCreate() {
-        const profileDataset = await getSolidDataset(this.webID, {
+        const profileDataset = await getSolidDataset(this.session.info.webId, {
             fetch: this.session.fetch
         });
-        const profile = getThing(profileDataset, this.webID);
+        const profile = getThing(profileDataset, this.session.info.webId);
         this.name = getStringNoLocale(profile, VCARD.fn) || getStringNoLocale(profile, FOAF.name);
         this.nickname = getStringNoLocale(profile, FOAF.nick);
-        this.image = getUrl(profile, "http://rdfs.org/sioc/ns#avatar") || getUrl(profile, VCARD.hasPhoto) || getUrl(profile, FOAF.img);
+        this.image = getUrl(profile, SIOC.avatar) || getUrl(profile, VCARD.hasPhoto) || getUrl(profile, FOAF.img);
         this.friends = getUrlAll(profile, FOAF.knows);
     },
     components: { Editable }

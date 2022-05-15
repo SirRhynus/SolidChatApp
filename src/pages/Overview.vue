@@ -1,11 +1,14 @@
 <script>
 import { getSolidDataset, getStringEnglish, getThing, getUrl } from "@inrupt/solid-client";
 import { FOAF, VCARD, DCTERMS } from "@inrupt/vocab-common-rdf";
-import { getChatroomAll } from '../modules/chatapp_functions';
+import { SIOC } from '../modules/vocab';
+import { getChatroomAll } from '../modules/chatappExplorationFunctions';
 import NewButton from "../components/NewButton.vue";
 import Form from "../components/Form.vue";
+import { addChatroom, createChatroom } from "../modules/chatappCreationFunctions";
 
 export default {
+    emits: ['chatroom', 'profile'],
     data() {
         return {
             size: 80,
@@ -13,17 +16,11 @@ export default {
             chatrooms: [],
             add_chatroom: {
                 is_visible: false,
-                data: {
-                    url: ''
-                }
+                url: ''
             },
             create_chatroom: {
                 is_visible: false,
-                data: {
-                    creator: this.session.info.webId,
-                    name: '',
-                    created: new Date()
-                }
+                title: ''
             }
         };
     },
@@ -32,17 +29,16 @@ export default {
             fetch: this.session.fetch
         });
         const profile = getThing(ds, this.session.info.webId);
-        this.image = getUrl(profile, "http://rdfs.org/sioc/ns#avatar") || getUrl(profile, VCARD.hasPhoto) || getUrl(profile, FOAF.img);
+        this.image = getUrl(profile, SIOC.avatar) || getUrl(profile, VCARD.hasPhoto) || getUrl(profile, FOAF.img);
         this.chatrooms = await getChatroomAll(this.session.info.webId, { fetch: this.session.fetch });
     },
     methods: {
-        submit_add_chatroom() {
-            console.log(this.add_chatroom.data);
+        async submit_add_chatroom() {
+            this.chatrooms.push(await addChatroom(this.session.info.webId, this.add_chatroom.url, { fetch: this.session.fetch }));
             this.add_chatroom.is_visible = false;
         },
-        submit_create_chatroom() {
-            this.create_chatroom.data.created = new Date();
-            console.log(this.create_chatroom.data);
+        async submit_create_chatroom() {
+            this.chatrooms.push(await createChatroom(this.session.info.webId, this.create_chatroom.title, { fetch: this.session.fetch }));
             this.create_chatroom.is_visible = false;
         },
         getTitle(chatroom) {
@@ -54,13 +50,13 @@ export default {
 </script>
 <template>
 <div class="overview">
-    <div id="my-profile">
+    <div id="my-profile" @click="$emit('profile')">
         <img :src="image" :width="size" :height="size">
         <h2>My Profile</h2>
     </div>
     <ul id="chatrooms">
-        <li v-for="chatroom in chatrooms">
-            <a><h2>{{ getTitle(chatroom) }}</h2></a>
+        <li v-for="chatroom in chatrooms" @click="$emit('chatroom', chatroom)">
+            <h2>{{ getTitle(chatroom) }}</h2>
         </li>
     </ul>
     <NewButton>
@@ -69,11 +65,11 @@ export default {
     </NewButton>
     <Form v-if="add_chatroom.is_visible" @submit="submit_add_chatroom" @cancel="add_chatroom.is_visible=false">
         <label for="url">URL: </label>
-        <input type="url" name="url" v-model="add_chatroom.data.url">
+        <input type="url" name="url" v-model="add_chatroom.url">
     </Form>
     <Form v-if="create_chatroom.is_visible" @submit="submit_create_chatroom" @cancel="create_chatroom.is_visible=false">
         <label for="name">Chatroom name: </label>
-        <input name="name" v-model="create_chatroom.data.name">
+        <input name="name" v-model="create_chatroom.title">
     </Form>
 </div>
 </template>
@@ -106,6 +102,15 @@ export default {
 
 #chatrooms {
     list-style: none;
+}
+
+#chatrooms > li {
+    display: block;
+}
+
+#chatrooms > li:hover {
+    border: 1px solid grey;
+    cursor: pointer;
 }
 
 .overview > .new-button {

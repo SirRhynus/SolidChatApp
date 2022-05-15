@@ -1,4 +1,4 @@
-import { asUrl, getContainedResourceUrlAll, getSolidDataset, getThing, getThingAll, getUrl, SolidDataset, Thing, UrlString, WebId, WithServerResourceInfo } from "@inrupt/solid-client";
+import { asUrl, getSolidDataset, getThing, getThingAll, getUrl, SolidDataset, Thing, UrlString, WebId, WithServerResourceInfo } from "@inrupt/solid-client";
 import { RDF } from "@inrupt/vocab-common-rdf";
 import { getProfileAllWithIndexes, ProfileAllWithIndexes } from "./profileTypeIndex";
 import { SIOCT, SOLID } from "./vocab";
@@ -77,11 +77,15 @@ export async function getChatroomAllFrom(
         typeof internal_defaultFetchOptions
     > = internal_defaultFetchOptions
 ): Promise<Thing[]> {
-    return await Promise.all(
+    return (await Promise.all(
         chatroomUrlAll.map(async (chatroomUrl) => {
-            const ds = await getSolidDataset(chatroomUrl, options);
-            const chatroom = getThing(ds, chatroomUrl);
-            return chatroom;
+            try {
+                const ds = await getSolidDataset(chatroomUrl, options);
+                const chatroom = getThing(ds, chatroomUrl);
+                return chatroom;
+            } catch {
+                return null;
+            }
         })
-    )
+    )).filter(thing => thing !== null);
 }

@@ -17,3 +17,7 @@ export const SOLID = {
 export const SIOCT = {
     ChatChannel: 'http://rdfs.org/sioc/types#ChatChannel'
 }
+
+export const SIOC = {
+    avatar: 'http://rdfs.org/sioc/ns#avatar'
+}
