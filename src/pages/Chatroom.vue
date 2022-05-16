@@ -1,6 +1,7 @@
 <script>
 import { asUrl, getStringEnglish, getStringNoLocale, getUrl } from "@inrupt/solid-client"
 import { DCTERMS } from "@inrupt/vocab-common-rdf"
+import { getChatMessagesUrlAllFrom } from "../modules/chatappExplorationFunctions";
 
 export default {
     props: ['chatroom'],
@@ -9,7 +10,8 @@ export default {
             title: getStringEnglish(this.chatroom, DCTERMS.title),
             creator: getUrl(this.chatroom, DCTERMS.creator),
             created: getStringNoLocale(this.chatroom, DCTERMS.created),
-            url: asUrl(this.chatroom)
+            url: asUrl(this.chatroom),
+            messages: []
         }
     },
     methods: {
@@ -18,6 +20,9 @@ export default {
             navigator.clipboard.writeText(this.url);
             setTimeout(() => e.srcElement.classList.remove('clicked'), 3000);
         }
+    },
+    async created() {
+        this.messages = await getChatMessagesUrlAllFrom(this.chatroom, { fetch: this.session.fetch })
     }
 
 }
@@ -28,6 +33,11 @@ export default {
         <h2>{{ title }}</h2>
         <p data-tooltip="Click to copy" @click="copyOnClick">{{ url }}</p>
     </header>
+    <section>
+        <ol>
+            <li v-for="messageUrl in messages">{{ messageUrl }}</li>
+        </ol>
+    </section>
 </div>
 </template>
 <style>

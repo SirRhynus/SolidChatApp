@@ -19,5 +19,6 @@ export const SIOCT = {
 }
 
 export const SIOC = {
-    avatar: 'http://rdfs.org/sioc/ns#avatar'
+    avatar: 'http://rdfs.org/sioc/ns#avatar',
+    containerOf: 'http://rdfs.org/sioc/ns#containerOf'
 }
