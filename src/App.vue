@@ -51,6 +51,18 @@ html, body {
   color: #2c3e50;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: row;
+  width: 100vw;
+  height: 100vh;
+}
+
+#app > .overview {
+  flex-grow: 1;
+}
+
+#app > .chatroom {
+  flex-grow: 5;
 }
 
 [data-tooltip] {

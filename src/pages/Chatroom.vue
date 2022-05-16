@@ -2,6 +2,7 @@
 import { asUrl, getStringEnglish, getStringNoLocale, getUrl } from "@inrupt/solid-client"
 import { DCTERMS } from "@inrupt/vocab-common-rdf"
 import { getChatMessagesUrlAllFrom } from "../modules/chatappExplorationFunctions";
+import ChatMessage from "../components/ChatMessage.vue";
 
 export default {
     props: ['chatroom'],
@@ -23,7 +24,8 @@ export default {
     },
     async created() {
         this.messages = await getChatMessagesUrlAllFrom(this.chatroom, { fetch: this.session.fetch })
-    }
+    },
+    components: { ChatMessage }
 
 }
 </script>
@@ -35,7 +37,9 @@ export default {
     </header>
     <section>
         <ol>
-            <li v-for="messageUrl in messages">{{ messageUrl }}</li>
+            <li v-for="messageUrl in messages">
+                <ChatMessage :messageUrl="messageUrl" />
+            </li>
         </ol>
     </section>
 </div>
@@ -60,6 +64,10 @@ export default {
 
 .chatroom > header > p[data-tooltip].clicked::after {
     content: 'Copied!';
+}
+
+.chatroom ol {
+    list-style: none;
 }
 
 </style>

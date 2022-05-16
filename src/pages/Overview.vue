@@ -82,7 +82,6 @@ export default {
     position: relative;
     width: 18rem;
     height: 100vh;
-    float: left;
     border: 4px solid black;
     padding: 0;
     margin: 0;

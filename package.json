@@ -12,6 +12,7 @@
     "@inrupt/solid-client": "^1.22.0",
     "@inrupt/solid-client-authn-browser": "^1.11.7",
     "@inrupt/vocab-common-rdf": "^1.0.3",
+    "luxon": "^2.4.0",
     "vue": "^3.2.25"
   },
   "devDependencies": {

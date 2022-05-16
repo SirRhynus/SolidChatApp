@@ -15,10 +15,13 @@ export const SOLID = {
 }
 
 export const SIOCT = {
-    ChatChannel: 'http://rdfs.org/sioc/types#ChatChannel'
+    ChatChannel: 'http://rdfs.org/sioc/types#ChatChannel',
+    InstantMessage: 'http://rdfs.org/sioc/types#InstantMessage'
 }
 
 export const SIOC = {
     avatar: 'http://rdfs.org/sioc/ns#avatar',
-    containerOf: 'http://rdfs.org/sioc/ns#containerOf'
+    containerOf: 'http://rdfs.org/sioc/ns#containerOf',
+    has_creator: 'http://rdfs.org/sioc/ns#has_creator',
+    content: 'http://rdfs.org/sioc/ns#content'
 }

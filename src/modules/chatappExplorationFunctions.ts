@@ -1,4 +1,4 @@
-import { asUrl, getSolidDataset, getThing, getThingAll, getUrl, getUrlAll, SolidDataset, Thing, UrlString, WebId, WithServerResourceInfo } from "@inrupt/solid-client";
+import { asUrl, getSolidDataset, getThing, getThingAll, getUrl, getUrlAll, SolidDataset, Thing, Url, UrlString, WebId, WithServerResourceInfo } from "@inrupt/solid-client";
 import { RDF, RDFS } from "@inrupt/vocab-common-rdf";
 import { getProfileAllWithIndexes, ProfileAllWithIndexes } from "./profileTypeIndex";
 import { SIOC, SIOCT, SOLID } from "./vocab";
@@ -153,6 +153,15 @@ export function mergeThing(
         ...thing,
         predicates: updatedPredicates
     });
+}
+
+export async function getExtendedThing(
+    url: UrlString,
+    options: Partial<typeof internal_defaultFetchOptions> = internal_defaultFetchOptions
+): Promise<Thing> {
+    const ds = await getSolidDataset(url, options);
+    const thing = getThing(ds, url);
+    return await getExtendedThingFrom(thing, options);
 }
 
 export async function getExtendedThingFrom(
