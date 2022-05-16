@@ -61,7 +61,7 @@ html, body {
   flex-grow: 1;
 }
 
-#app > .chatroom {
+#app > .chatroom, #app > .profile-info {
   flex-grow: 5;
 }
 

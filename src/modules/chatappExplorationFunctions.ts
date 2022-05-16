@@ -90,13 +90,13 @@ export async function getChatroomAllFrom(
     )).filter(thing => thing !== null);
 }
 
-export async function getChatMessagesUrlAllFromUrl(
+export async function getChatMessageUrlAllFromUrl(
     chatroomUrl: UrlString, 
     options: Partial<typeof internal_defaultFetchOptions> = internal_defaultFetchOptions
 ): Promise<UrlString[]> {
     const chatroomDS = await getSolidDataset(chatroomUrl, options);
     const chatroom = getThing(chatroomDS, chatroomUrl);
-    return await getChatMessagesUrlAllFrom(chatroom, options);
+    return await getChatMessageUrlAllFrom(chatroom, options);
 }
 
 export function mergeThing(
@@ -178,10 +178,27 @@ export async function getExtendedThingFrom(
     ).reduce(mergeThing, thing);
 }
 
-export async function getChatMessagesUrlAllFrom(
+export async function getChatMessageUrlAllFrom(
     chatroom: Thing,
     options: Partial<typeof internal_defaultFetchOptions> = internal_defaultFetchOptions
 ): Promise<UrlString[]> {
     const extendedChatroom = await getExtendedThingFrom(chatroom, options);
     return getUrlAll(extendedChatroom, SIOC.containerOf);
+}
+
+export async function getChatMessageAllFrom(
+    chatroom: Thing,
+    options: Partial<typeof internal_defaultFetchOptions> = internal_defaultFetchOptions
+): Promise<Thing[]> {
+    return (await Promise.all(
+        (await getChatMessageUrlAllFrom(chatroom, options)).map(async (messageUrl) => {
+            try {
+                const ds = await getSolidDataset(messageUrl, options);
+                const message = getThing(ds, messageUrl);
+                return message;
+            } catch {
+                return null;
+            }
+        })
+    )).filter(thing => thing !== null);
 }

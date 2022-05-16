@@ -1,7 +1,8 @@
 <script>
-import { asUrl, getStringEnglish, getStringNoLocale, getUrl } from "@inrupt/solid-client"
-import { DCTERMS } from "@inrupt/vocab-common-rdf"
-import { getChatMessagesUrlAllFrom } from "../modules/chatappExplorationFunctions";
+import { asUrl, getDatetime, getStringEnglish, getStringNoLocale, getUrl } from "@inrupt/solid-client"
+import { DCTERMS } from "@inrupt/vocab-common-rdf";
+import { SIOC } from "../modules/vocab";
+import { getChatMessageAllFrom } from "../modules/chatappExplorationFunctions";
 import ChatMessage from "../components/ChatMessage.vue";
 
 export default {
@@ -23,7 +24,14 @@ export default {
         }
     },
     async created() {
-        this.messages = await getChatMessagesUrlAllFrom(this.chatroom, { fetch: this.session.fetch })
+        this.messages = (await getChatMessageAllFrom(this.chatroom, { fetch: this.session.fetch })).map((messageThing) => {
+            const message = {};
+            message.url = asUrl(messageThing);
+            message.author = getUrl(messageThing, SIOC.has_creator);
+            message.created = getDatetime(messageThing, DCTERMS.created);
+            message.content = getStringEnglish(messageThing, SIOC.content);
+            return message;
+        }).sort((a, b) => (new Date(a.created) - new Date(b.created)));
     },
     components: { ChatMessage }
 
@@ -37,8 +45,8 @@ export default {
     </header>
     <section>
         <ol>
-            <li v-for="messageUrl in messages">
-                <ChatMessage :messageUrl="messageUrl" />
+            <li v-for="message in messages">
+                <ChatMessage :message="message" />
             </li>
         </ol>
     </section>
