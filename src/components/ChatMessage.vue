@@ -58,12 +58,12 @@ export default {
 
 .message.right {
     float: right;
-    clear: left;
+    clear: both;
 }
 
 .message.left {
     float: left;
-    clear: right;
+    clear: both;
 }
 
 .message > div {

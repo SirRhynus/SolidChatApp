@@ -1,4 +1,5 @@
 import { 
+    addUrl,
     asUrl,
     buildThing,
     createContainerAt,
@@ -14,17 +15,20 @@ import {
     getUrl, 
     isContainer, 
     saveSolidDatasetAt,
+    saveSolidDatasetInContainer,
     setThing, 
     setUrl, 
     SolidDataset, 
     Thing, 
     UrlString,
-    WebId, 
+    WebId,
+    WithResourceInfo,
+    WithServerResourceInfo, 
 } from "@inrupt/solid-client";
-import { DCTERMS, RDF } from "@inrupt/vocab-common-rdf";
+import { DCTERMS, RDF, RDFS } from "@inrupt/vocab-common-rdf";
 import { getChatroomIndexUrlAll } from "./chatappExplorationFunctions";
 import { getPrivateTypeIndexUrlAll, getPublicTypeIndexUrlAll } from "./profileTypeIndex";
-import { SIOCT, SOLID } from "./vocab";
+import { SIOC, SIOCT, SOLID } from "./vocab";
 
 declare const internal_defaultFetchOptions: {
     fetch: ((input: RequestInfo, init?: RequestInit | undefined) => Promise<Response>) & typeof fetch;
@@ -113,11 +117,75 @@ export async function createChatroom (
         chatroomsContainerUrl = getSourceUrl( await createContainerAt(podUrl.toString(), options) );
     }
 
-    let chatroomDS = await createContainerInContainer(chatroomsContainerUrl, options);
+    let chatroomDS = await createContainerInContainer(chatroomsContainerUrl, { ...options, slugSuggestion: title.replace(' ', '') });
     chatroomDS = setThing(chatroomDS, chatroomL);
     chatroomDS = await saveSolidDatasetAt(getSourceUrl(chatroomDS), chatroomDS, options);
 
     const chatroom = getThingAll(chatroomDS).filter((thing) => getUrl(thing, RDF.type) === SIOCT.ChatChannel)[0];
 
     return await addChatroom(webId, asUrl(chatroom), options);
+}
+
+export async function postChatMessage(
+    webId: WebId,
+    content: string,
+    chatroom: Thing & WithResourceInfo,
+    options: Partial<typeof internal_defaultFetchOptions> = internal_defaultFetchOptions
+) {
+    const created = new Date();
+    const year = created.getFullYear();
+    const month = created.getMonth() + 1;
+    const day = created.getDate();
+
+    const messageName = created.getTime() + Math.random().toString().substring("0.".length, 6);
+
+    const message = buildThing(createThing({ name: messageName }))
+        .addUrl(RDF.type, SIOCT.InstantMessage)
+        .addUrl(SIOC.has_creator, webId)
+        .addDatetime(DCTERMS.created, created)
+        .addStringEnglish(SIOC.content, content)
+        .build();
+
+    const chatroomContainerUrl = new URL(asUrl(chatroom));
+    chatroomContainerUrl.hash = '';
+    const dsUrl = new URL(chatroomContainerUrl);
+    dsUrl.pathname = (dsUrl.pathname + `/${year}/${month}/${day}.ttl`).replace(/(\/)\/+/g, "$1");
+
+    let ds = await getSolidDataset(dsUrl.toString(), options).catch(async () => {
+        let yearContainer: SolidDataset & WithResourceInfo, 
+            monthContainer: SolidDataset & WithResourceInfo;
+        const yearContainerUrl = new URL(chatroomContainerUrl);
+        yearContainerUrl.pathname = (yearContainerUrl.pathname + `/${year}/`).replace(/(\/)\/+/g, "$1");
+        try {
+            yearContainer = await getSolidDataset(yearContainerUrl.toString(), options);
+        } catch {
+            yearContainer = await createContainerInContainer(chatroomContainerUrl.toString(), { ...options, slugSuggestion: `${year}/` });
+        }
+        const monthContainerUrl = new URL(getSourceUrl(yearContainer));
+        monthContainerUrl.pathname = (monthContainerUrl.pathname + `/${month}/`).replace(/(\/)\/+/g, "$1");
+        try {
+            monthContainer = await getSolidDataset(monthContainerUrl.toString(), options);
+        } catch {
+            monthContainer = await createContainerInContainer(getSourceUrl(yearContainer), { ...options, slugSuggestion: `${month}/` });
+        }
+
+        const ds = await saveSolidDatasetInContainer(getSourceUrl(monthContainer), createSolidDataset(), { ...options, slugSuggestion: `${day}.ttl`});
+        
+        const newChatroom = addUrl(chatroom, RDFS.seeAlso, getSourceUrl(ds));
+        const chatroomUrl = asUrl(chatroom);
+        const chatroomDS = setThing(await getSolidDataset(chatroomUrl, options), newChatroom);
+        saveSolidDatasetAt(chatroomUrl, chatroomDS, options);
+        return ds;
+    });
+    
+    const messageUrl = new URL(getSourceUrl(ds));
+    messageUrl.hash = messageName;
+
+    ds = setThing(ds, message);
+    let chatroomIndex = getThing(ds, asUrl(chatroom)) || createThing({ url: asUrl(chatroom) });
+    chatroomIndex = addUrl(chatroomIndex, SIOC.containerOf, messageUrl.toString());
+    ds = setThing(ds, chatroomIndex);
+    ds = await saveSolidDatasetAt(getSourceUrl(ds), ds, options);
+
+    return getThing(ds, messageUrl.toString());
 }

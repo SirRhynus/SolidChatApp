@@ -191,7 +191,7 @@ export async function getChatMessageAllFrom(
     options: Partial<typeof internal_defaultFetchOptions> = internal_defaultFetchOptions
 ): Promise<Thing[]> {
     return (await Promise.all(
-        (await getChatMessageUrlAllFrom(chatroom, options)).map(async (messageUrl) => {
+        (await getChatMessageUrlAllFrom(chatroom, options)).sort((a, b) => (a < b) ? 1 : -1).map(async (messageUrl) => {
             try {
                 const ds = await getSolidDataset(messageUrl, options);
                 const message = getThing(ds, messageUrl);
