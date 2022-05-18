@@ -118,6 +118,10 @@ export default {
     height: 10%;
 }
 
+.chatroom > header > * {
+    margin: 7px;
+}
+
 .chatroom > header > p[data-tooltip] {
     text-decoration: dotted underline;
     transition: unset;

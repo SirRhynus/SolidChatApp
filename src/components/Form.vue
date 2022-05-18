@@ -30,6 +30,7 @@ form.fixed {
     border: 1px solid black;
     transform: translate(-50%, -50%);
     background-color: white;
+    z-index: 99;
 }
 
 .row {

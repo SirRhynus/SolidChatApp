@@ -5,13 +5,13 @@ import { SIOC } from '../modules/vocab';
 import { getChatroomAll } from '../modules/chatappExplorationFunctions';
 import NewButton from "../components/NewButton.vue";
 import Form from "../components/Form.vue";
+import Image from "../components/Image.vue";
 import { addChatroom, createChatroom } from "../modules/chatappCreationFunctions";
 
 export default {
     emits: ['chatroom', 'profile'],
     data() {
         return {
-            size: 80,
             image: null,
             chatrooms: [],
             add_chatroom: {
@@ -45,13 +45,13 @@ export default {
             return getStringEnglish(chatroom, DCTERMS.title);
         }
     },
-    components: { NewButton, Form }
+    components: { NewButton, Form, Image }
 }
 </script>
 <template>
 <div class="overview">
     <div id="my-profile" @click="$emit('profile')">
-        <img :src="image" :width="size" :height="size">
+        <Image v-if="image" :src="image" size="80" />
         <h2>My Profile</h2>
     </div>
     <ul id="chatrooms">
