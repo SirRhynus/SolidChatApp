@@ -190,17 +190,27 @@ export async function getChatMessageAllFrom(
     chatroom: Thing,
     options: Partial<typeof internal_defaultFetchOptions> = internal_defaultFetchOptions
 ): Promise<Thing[]> {
-    return (await Promise.all(
-        (await getChatMessageUrlAllFrom(chatroom, options)).sort((a, b) => (a < b) ? 1 : -1).map(async (messageUrl) => {
+    const chatMessageUrlAll = (await getChatMessageUrlAllFrom(chatroom, options))
+        .sort((a, b) => (a < b) ? 1 : -1);
+    const thingAll: Thing[] = [];
+    const cache = new Map<UrlString, SolidDataset>();
+    for (const messageUrl of chatMessageUrlAll) {
+        const baseUrl = new URL(messageUrl);
+        baseUrl.hash = '';
+        if (!cache.has(baseUrl.toString())) {
+            let ds: SolidDataset;
             try {
-                const ds = await getSolidDataset(messageUrl, options);
-                const message = getThing(ds, messageUrl);
-                return message;
+                ds = await getSolidDataset(baseUrl.toString(), options);
             } catch {
-                return null;
+                ds = null;
             }
-        })
-    )).filter(thing => thing !== null);
+            cache.set(baseUrl.toString(), ds);
+        }
+        const ds = cache.get(baseUrl.toString());
+        if (ds !== null)
+            thingAll.push(getThing(ds, messageUrl));
+    }
+    return thingAll;
 }
 
 export async function getChatMessageAllPast(

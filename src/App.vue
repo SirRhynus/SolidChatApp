@@ -74,8 +74,9 @@ html, body {
   content: attr(data-tooltip);
   font-size: small;
   position: absolute;
-  left: 25%;
+  left: 50%;
   top: 100%; /* put it on the bottom */
+  transform: translateX(-50%);
   background-color: black;
   color: white;
   padding: 4px;
