@@ -1,4 +1,4 @@
-import { getPodUrlAll, getSolidDataset, getSourceUrl, getThing, saveFileInContainer, saveSolidDatasetAt, setStringNoLocale, setThing, setUrl, SolidDataset, Url, WebId, WithResourceInfo } from "@inrupt/solid-client";
+import { AclDataset, createAclFromFallbackAcl, getPodUrlAll, getResourceAcl, getResourceInfoWithAcl, getSolidDataset, getSourceUrl, getThing, hasAccessibleAcl, hasFallbackAcl, hasResourceAcl, saveAclFor, saveFileInContainer, saveSolidDatasetAt, setPublicResourceAccess, setStringNoLocale, setThing, setUrl, SolidDataset, Url, WebId, WithResourceInfo } from "@inrupt/solid-client";
 import { SIOC } from "./vocab";
 
 declare const internal_defaultFetchOptions: {
@@ -13,8 +13,22 @@ export async function changeProfileImage(
     const profileDS = await getSolidDataset(webId, options);
     const profile = getThing(profileDS, webId);
     const pod = (await getPodUrlAll(webId, options))[0];
-    console.log(pod);
     const savedFile = await saveFileInContainer(pod, file, { ...options, slug: file.name });
+    
+    const savedFileWithAcl = await getResourceInfoWithAcl(getSourceUrl(savedFile), options);
+    let savedFileAcl: AclDataset;
+    if (!hasResourceAcl(savedFileWithAcl)) {
+        if (!hasAccessibleAcl(savedFileWithAcl))
+            throw new Error("The current user does not have permission to change access rights to this Resource.");
+        if (!hasFallbackAcl(savedFileWithAcl))
+            throw new Error("The current user does not have permissions to see who currently has access to this Resource.");
+        savedFileAcl = createAclFromFallbackAcl(savedFileWithAcl);
+    } else {
+        savedFileAcl = getResourceAcl(savedFileWithAcl);
+    }
+    const updatedAcl = setPublicResourceAccess(savedFileAcl, { read: true, append: false, write: false, control: false });
+    await saveAclFor(savedFileWithAcl, updatedAcl);
+
     const updatedProfile = setUrl(profile, SIOC.avatar, getSourceUrl(savedFile));
     return await saveSolidDatasetAt(webId, setThing(profileDS, updatedProfile), options);
 }
