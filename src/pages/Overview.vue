@@ -82,7 +82,7 @@ export default {
     position: relative;
     width: 18rem;
     height: 100vh;
-    border: 4px solid black;
+    border-right: 4px solid black;
     padding: 0;
     margin: 0;
 }
@@ -93,10 +93,15 @@ export default {
 
 #my-profile {
     display: flex;
+    height: 10%;
     flex-direction: row;
     justify-content: space-around;
     align-items: center;
-    border-bottom: 1px solid black;
+    border-bottom: 2px solid black;
+}
+
+#my-profile:hover {
+    cursor: pointer;
 }
 
 #chatrooms {

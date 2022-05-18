@@ -2,9 +2,10 @@
 import { asUrl, getDatetime, getStringEnglish, getStringNoLocale, getUrl } from "@inrupt/solid-client"
 import { DCTERMS } from "@inrupt/vocab-common-rdf";
 import { SIOC } from "../modules/vocab";
-import { getChatMessageAllFrom } from "../modules/chatappExplorationFunctions";
+import { getChatMessageAllFrom, getChatMessageAllPast } from "../modules/chatappExplorationFunctions";
 import { postChatMessage } from "../modules/chatappCreationFunctions";
 import ChatMessage from "../components/ChatMessage.vue";
+import { DateTime } from 'luxon';
 
 export default {
     props: ['chatroom'],
@@ -12,10 +13,19 @@ export default {
         return {
             title: getStringEnglish(this.chatroom, DCTERMS.title),
             creator: getUrl(this.chatroom, DCTERMS.creator),
-            created: getStringNoLocale(this.chatroom, DCTERMS.created),
+            created: getDatetime(this.chatroom, DCTERMS.created),
             url: asUrl(this.chatroom),
             messages: [],
-            currentMessage: ''
+            messageIds: new Set(),
+            currentMessage: '',
+            interval: null,
+            _lastFetch: null,
+            console: console
+        }
+    },
+    computed: {
+        chatroomInfo() {
+            return `Created on ${DateTime.fromJSDate(this.created).toLocaleString(DateTime.DATETIME_MED)} by ${this.creator}`;
         }
     },
     methods: {
@@ -24,9 +34,17 @@ export default {
             navigator.clipboard.writeText(this.url);
             setTimeout(() => e.srcElement.classList.remove('clicked'), 3000);
         },
+        getLastFetch() {
+            const prevLastFetch = new Date(this._lastFetch);
+            this._lastFetch = new Date();
+            return prevLastFetch;
+        },
         async sendMessage() {
             const messageThing = await postChatMessage(this.session.info.webId, this.currentMessage, this.chatroom, { fetch: this.session.fetch });
-            this.messages.push(this.messageThingToMessage(messageThing));
+            this.currentMessage = '';
+            const message = this.messageThingToMessage(messageThing);
+            this.messageIds.add(message.url);
+            this.messages.push(message);
         },
         messageThingToMessage(messageThing) {
             const message = {};
@@ -35,10 +53,25 @@ export default {
             message.created = getDatetime(messageThing, DCTERMS.created);
             message.content = getStringEnglish(messageThing, SIOC.content);
             return message;
+        },
+        async fetchNewMessages() {
+            const lastFetch = this.getLastFetch();
+            const getChatMessages = (lastFetch == null ?
+                async () => { return await getChatMessageAllFrom(this.chatroom, {fetch: this.session.fetch})} :
+                async () => { return await getChatMessageAllPast(lastFetch, this.chatroom, { fetch: this.session.fetch })}
+            );
+            (await getChatMessages())
+                .map(this.messageThingToMessage)
+                .filter((message) => !this.messageIds.has(message.url))
+                .sort((a, b) => (new Date(a.created) < new Date(b.created) ? -1 : 1))
+                .forEach((message) => { this.messages.push(message); this.messageIds.add(message.url)});
         }
     },
     async created() {
-        this.messages = (await getChatMessageAllFrom(this.chatroom, { fetch: this.session.fetch })).map(this.messageThingToMessage);//.sort((a, b) => (new Date(a.created) - new Date(b.created)));
+        this.interval = setInterval(this.fetchNewMessages, 5000);
+    },
+    beforeUnmount() {
+        clearInterval(this.interval);
     },
     components: { ChatMessage }
 
@@ -47,17 +80,21 @@ export default {
 <template>
 <div class="chatroom">
     <header>
-        <h2>{{ title }}</h2>
+        <h2
+            :data-tooltip="chatroomInfo"
+        >{{ title }}</h2>
         <p data-tooltip="Click to copy" @click="copyOnClick">{{ url }}</p>
     </header>
     <section>
-        <ol>
-            <li v-for="message in messages">
-                <ChatMessage :message="message" />
-            </li>
-        </ol>
         <div>
-            <input v-model="currentMessage">
+            <ol>
+                <li v-for="message in messages">
+                    <ChatMessage :message="message" />
+                </li>
+            </ol>
+        </div>
+        <div>
+            <input v-model="currentMessage" @beforeinput="(e) => { if (e.inputType === 'insertLineBreak') sendMessage(e); }">
             <button @click="sendMessage">
                 <svg viewBox="0 0 200 100">
                     <polygon points="0,0 200,50 0,100 0,0" class="send"></polygon>
@@ -70,12 +107,15 @@ export default {
 <style>
 .chatroom {
     height: 100%;
+    max-height: 100%;
     display: flex;
     flex-direction: column;
+    overflow-y: hidden;
 }
 
 .chatroom > header {
-    border: 2px solid black;
+    border-bottom: 2px solid black;
+    height: 10%;
 }
 
 .chatroom > header > p[data-tooltip] {
@@ -96,23 +136,29 @@ export default {
 }
 
 .chatroom > section {
-    flex-grow: 1;
     display: flex;
     flex-direction: column;
-    height: 100%;
+    height: 90%
+}
+
+
+.chatroom > section > div:first-child {
+    display: flex;
+    flex-direction: column-reverse;
     padding: 2rem;
-}
-
-
-.chatroom > section > ol {
-    list-style: none;
     flex-grow: 1;
+    overflow-y: scroll;
 }
 
-.chatroom > section > div {
+.chatroom > section > div:first-child > ol {
+    list-style: none;
+}
+
+.chatroom > section > div:last-child {
     width: 90%;
     height: 2rem;
     padding: 2px;
+    margin: 2px auto;
     border: 1px solid blue;
     border-radius: 10px;
 }
@@ -145,6 +191,10 @@ export default {
 .chatroom > section > div > button > svg {
     height: 80%;
     width: 100%;
+}
+
+.chatroom > section > div > button > svg:hover {
+    cursor: pointer;
 }
 
 .send {

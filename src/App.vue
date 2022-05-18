@@ -55,6 +55,7 @@ html, body {
   flex-direction: row;
   width: 100vw;
   height: 100vh;
+  max-height: 100vh;
 }
 
 #app > .overview {
@@ -71,9 +72,10 @@ html, body {
 
 [data-tooltip]:after {
   content: attr(data-tooltip);
+  font-size: small;
   position: absolute;
-  left: 50%;
-  bottom: 100%; /* put it on the top */
+  left: 25%;
+  top: 100%; /* put it on the bottom */
   background-color: black;
   color: white;
   padding: 4px;

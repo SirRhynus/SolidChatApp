@@ -71,7 +71,7 @@ export default {
     flex-direction: column;    
 }
 
-.message > div > p:first-child {
+.message > div > p:first-child > em {
     font-size: smaller;
 }
 

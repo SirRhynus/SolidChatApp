@@ -1,5 +1,5 @@
-import { asUrl, getSolidDataset, getThing, getThingAll, getUrl, getUrlAll, SolidDataset, Thing, Url, UrlString, WebId, WithServerResourceInfo } from "@inrupt/solid-client";
-import { RDF, RDFS } from "@inrupt/vocab-common-rdf";
+import { asUrl, getDatetime, getSolidDataset, getThing, getThingAll, getUrl, getUrlAll, SolidDataset, Thing, Url, UrlString, WebId, WithServerResourceInfo } from "@inrupt/solid-client";
+import { DCTERMS, RDF, RDFS } from "@inrupt/vocab-common-rdf";
 import { getProfileAllWithIndexes, ProfileAllWithIndexes } from "./profileTypeIndex";
 import { SIOC, SIOCT, SOLID } from "./vocab";
 
@@ -182,7 +182,7 @@ export async function getChatMessageUrlAllFrom(
     chatroom: Thing,
     options: Partial<typeof internal_defaultFetchOptions> = internal_defaultFetchOptions
 ): Promise<UrlString[]> {
-    const extendedChatroom = await getExtendedThingFrom(chatroom, options);
+    const extendedChatroom = await getExtendedThing(asUrl(chatroom), options);
     return getUrlAll(extendedChatroom, SIOC.containerOf);
 }
 
@@ -201,4 +201,17 @@ export async function getChatMessageAllFrom(
             }
         })
     )).filter(thing => thing !== null);
+}
+
+export async function getChatMessageAllPast(
+    datetime: Date,
+    chatroom: Thing,
+    options: Partial<typeof internal_defaultFetchOptions> = internal_defaultFetchOptions
+): Promise<Thing[]> {
+    const messagesAll = await getChatMessageAllFrom(chatroom, options);
+    return messagesAll.filter((message) => { 
+        const newDate = new Date(getDatetime(message, DCTERMS.created));
+        const result = newDate > datetime;
+        return result;
+    });
 }
