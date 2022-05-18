@@ -23,10 +23,24 @@ import {
     UrlString,
     WebId,
     WithResourceInfo,
-    WithServerResourceInfo, 
+    getSolidDatasetWithAcl,
+    hasResourceAcl,
+    hasAccessibleAcl,
+    hasFallbackAcl,
+    createAclFromFallbackAcl,
+    AclDataset,
+    getResourceAcl,
+    setPublicDefaultAccess,
+    getAgentDefaultAccess,
+    setAgentResourceAccess,
+    saveAclFor,
+    getAgentAccess,
+    getPublicDefaultAccess,
+    setPublicResourceAccess,
 } from "@inrupt/solid-client";
 import { DCTERMS, RDF, RDFS } from "@inrupt/vocab-common-rdf";
 import { getChatroomIndexUrlAll } from "./chatappExplorationFunctions";
+import { changeProfileImage } from "./profileFunctions";
 import { getPrivateTypeIndexUrlAll, getPublicTypeIndexUrlAll } from "./profileTypeIndex";
 import { SIOC, SIOCT, SOLID } from "./vocab";
 
@@ -113,13 +127,30 @@ export async function createChatroom (
     const podUrl = new URL((await getPodUrlAll(webId, options))[0]);
     podUrl.pathname = (podUrl.pathname + '/public/chatrooms/').replace(/(\/)\/+/g, "$1");
     let chatroomsContainerUrl: UrlString = podUrl.toString();
-    if (!isContainer(chatroomsContainerUrl)) {
-        chatroomsContainerUrl = getSourceUrl( await createContainerAt(podUrl.toString(), options) );
-    }
 
-    let chatroomDS = await createContainerInContainer(chatroomsContainerUrl, { ...options, slugSuggestion: title.replace(' ', '') });
+    let chatroomDS = await createContainerInContainer(chatroomsContainerUrl, { ...options, slugSuggestion: title.replaceAll(' ', '') })
+        .catch(async () => {
+            chatroomsContainerUrl = getSourceUrl( await createContainerAt(chatroomsContainerUrl, options));
+            return await createContainerInContainer(chatroomsContainerUrl, { ...options, slugSuggestion: title.replaceAll(' ', '') });
+        });
     chatroomDS = setThing(chatroomDS, chatroomL);
     chatroomDS = await saveSolidDatasetAt(getSourceUrl(chatroomDS), chatroomDS, options);
+
+    const chatroomDSWithAcl = await getSolidDatasetWithAcl(getSourceUrl(chatroomDS), options);
+    let resourceAcl: AclDataset;
+    if (!hasResourceAcl(chatroomDSWithAcl)) {
+        if (!hasAccessibleAcl(chatroomDSWithAcl))
+            throw new Error("The current user does not have permissions to change access rights to this Resource.");
+        if (!hasFallbackAcl(chatroomDSWithAcl))
+            throw new Error("The current user does not have premissions to see who currently has access to this Resource.");
+        resourceAcl = createAclFromFallbackAcl(chatroomDSWithAcl);
+    } else {
+        resourceAcl = getResourceAcl(chatroomDSWithAcl);
+    }
+    const updatedAclPrivate = setAgentResourceAccess(resourceAcl, webId, { read: true, append: true, write: true, control: true });
+    const updatedAclDefault = setPublicDefaultAccess(updatedAclPrivate, { read: true, append: true, write: false, control: false });
+    const updatedAcl = setPublicResourceAccess(updatedAclDefault, { read: true, append: true, write: false, control: false });
+    await saveAclFor(chatroomDSWithAcl, updatedAcl, options);
 
     const chatroom = getThingAll(chatroomDS).filter((thing) => getUrl(thing, RDF.type) === SIOCT.ChatChannel)[0];
 
