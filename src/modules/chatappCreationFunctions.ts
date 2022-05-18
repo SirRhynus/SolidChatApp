@@ -37,6 +37,7 @@ import {
     getAgentAccess,
     getPublicDefaultAccess,
     setPublicResourceAccess,
+    getUrlAll,
 } from "@inrupt/solid-client";
 import { DCTERMS, RDF, RDFS } from "@inrupt/vocab-common-rdf";
 import { getChatroomIndexUrlAll } from "./chatappExplorationFunctions";
@@ -157,6 +158,78 @@ export async function createChatroom (
     return await addChatroom(webId, asUrl(chatroom), options);
 }
 
+async function getChatMessagesContainer(
+    chatroom: Thing & WithResourceInfo,
+    created: Date,
+    options: Partial<typeof internal_defaultFetchOptions> = internal_defaultFetchOptions
+): Promise<SolidDataset & WithResourceInfo> {
+
+    const year = created.getFullYear();
+    const month = created.getMonth() + 1;
+    const day = created.getDate();
+
+    const chatroomContainerUrl = (() => {
+        const chatroomContainerUrl = new URL(asUrl(chatroom));
+        chatroomContainerUrl.hash = '';
+        return chatroomContainerUrl.toString();
+    })();
+    let dsUrl = (() => {
+        const dsUrl = new URL(chatroomContainerUrl);
+        dsUrl.pathname = (dsUrl.pathname + `/${year}/${month}/${day}.ttl`).replace(/(\/)\/+/g, "$1");
+        return dsUrl.toString();
+    })();
+    let  monthContainerUrl = (() => {
+        const monthContainerUrl = new URL(chatroomContainerUrl);
+        monthContainerUrl.pathname = (monthContainerUrl.pathname + `/${year}/${month}/`).replace(/(\/)\/+/g, "$1");
+        return monthContainerUrl.toString();
+    })();
+    let yearContainerUrl = (() => {
+        const yearContainerUrl = new URL(chatroomContainerUrl);
+        yearContainerUrl.pathname = (yearContainerUrl.pathname + `/${year}/`).replace(/(\/)\/+/g, "$1");
+        return yearContainerUrl.toString();
+    })();
+
+    const ds = await getSolidDataset(dsUrl, options).catch(async () => {
+        const monthContainer = await getSolidDataset(monthContainerUrl, options).catch(async () => {
+            const yearContainer = await getSolidDataset(yearContainerUrl, options).catch(async () => 
+                await createContainerInContainer(chatroomContainerUrl, { ...options, slugSuggestion: `${year}/` })
+            );
+            yearContainerUrl = getSourceUrl(yearContainer);
+            
+            return await createContainerInContainer(yearContainerUrl, { ...options, slugSuggestion: `${month}/` });
+        });
+        monthContainerUrl = getSourceUrl(monthContainer);
+        
+        
+        return await saveSolidDatasetInContainer(getSourceUrl(monthContainer), createSolidDataset(), { ...options, slugSuggestion: `${day}.ttl`});
+    });
+    dsUrl = getSourceUrl(ds);
+    
+    const chatroomDS = await getSolidDataset(asUrl(chatroom), options);
+    const chatroomThing = getThing(chatroomDS, asUrl(chatroom))
+    if(!getUrlAll(chatroomThing, RDFS.seeAlso).some((url) => url === yearContainerUrl)) {
+        const updatedChatroomThing = addUrl(chatroomThing, RDFS.seeAlso, yearContainerUrl);
+        const updatedChatroomDS = setThing(chatroomDS, updatedChatroomThing);
+        await saveSolidDatasetAt(asUrl(chatroom), updatedChatroomDS, options);
+    }
+    const yearContainer = await getSolidDataset(yearContainerUrl, options);
+    const yearChatroomThing = getThing(yearContainer, asUrl(chatroom)) || createThing({ url: asUrl(chatroom) });
+    if (!getUrlAll(yearChatroomThing, RDFS.seeAlso).some((url) => url === monthContainerUrl)) {
+        const updatedYearChatroomThing = addUrl(yearChatroomThing, RDFS.seeAlso, monthContainerUrl);
+        const updatedYearContainer = setThing(yearContainer, updatedYearChatroomThing);
+        await saveSolidDatasetAt(yearContainerUrl, updatedYearContainer, options);
+    }
+    const monthContainer = await getSolidDataset(monthContainerUrl, options);
+    const monthChatroomThing = getThing(monthContainer, asUrl(chatroom)) || createThing({ url: asUrl(chatroom) });
+    if (!getUrlAll(monthChatroomThing, RDFS.seeAlso).some((url) => url === monthContainerUrl)) {
+        const updatedMonthChatroomThing = addUrl(monthChatroomThing, RDFS.seeAlso, dsUrl);
+        const updatedMonthContainer = setThing(monthContainer, updatedMonthChatroomThing);
+        await saveSolidDatasetAt(monthContainerUrl, updatedMonthContainer, options);
+    }
+
+    return ds;
+}
+
 export async function postChatMessage(
     webId: WebId,
     content: string,
@@ -164,9 +237,6 @@ export async function postChatMessage(
     options: Partial<typeof internal_defaultFetchOptions> = internal_defaultFetchOptions
 ) {
     const created = new Date();
-    const year = created.getFullYear();
-    const month = created.getMonth() + 1;
-    const day = created.getDate();
 
     const messageName = created.getTime() + Math.random().toString().substring("0.".length, 6);
 
@@ -177,37 +247,7 @@ export async function postChatMessage(
         .addStringEnglish(SIOC.content, content)
         .build();
 
-    const chatroomContainerUrl = new URL(asUrl(chatroom));
-    chatroomContainerUrl.hash = '';
-    const dsUrl = new URL(chatroomContainerUrl);
-    dsUrl.pathname = (dsUrl.pathname + `/${year}/${month}/${day}.ttl`).replace(/(\/)\/+/g, "$1");
-
-    let ds = await getSolidDataset(dsUrl.toString(), options).catch(async () => {
-        let yearContainer: SolidDataset & WithResourceInfo, 
-            monthContainer: SolidDataset & WithResourceInfo;
-        const yearContainerUrl = new URL(chatroomContainerUrl);
-        yearContainerUrl.pathname = (yearContainerUrl.pathname + `/${year}/`).replace(/(\/)\/+/g, "$1");
-        try {
-            yearContainer = await getSolidDataset(yearContainerUrl.toString(), options);
-        } catch {
-            yearContainer = await createContainerInContainer(chatroomContainerUrl.toString(), { ...options, slugSuggestion: `${year}/` });
-        }
-        const monthContainerUrl = new URL(getSourceUrl(yearContainer));
-        monthContainerUrl.pathname = (monthContainerUrl.pathname + `/${month}/`).replace(/(\/)\/+/g, "$1");
-        try {
-            monthContainer = await getSolidDataset(monthContainerUrl.toString(), options);
-        } catch {
-            monthContainer = await createContainerInContainer(getSourceUrl(yearContainer), { ...options, slugSuggestion: `${month}/` });
-        }
-
-        const ds = await saveSolidDatasetInContainer(getSourceUrl(monthContainer), createSolidDataset(), { ...options, slugSuggestion: `${day}.ttl`});
-        
-        const newChatroom = addUrl(chatroom, RDFS.seeAlso, getSourceUrl(ds));
-        const chatroomUrl = asUrl(chatroom);
-        const chatroomDS = setThing(await getSolidDataset(chatroomUrl, options), newChatroom);
-        saveSolidDatasetAt(chatroomUrl, chatroomDS, options);
-        return ds;
-    });
+    let ds = await getChatMessagesContainer(chatroom, created, options);    
     
     const messageUrl = new URL(getSourceUrl(ds));
     messageUrl.hash = messageName;

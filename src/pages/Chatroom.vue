@@ -69,6 +69,7 @@ export default {
     },
     async created() {
         this.interval = setInterval(this.fetchNewMessages, 5000);
+        console.log();
     },
     beforeUnmount() {
         clearInterval(this.interval);

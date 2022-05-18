@@ -1,5 +1,6 @@
-import { asUrl, getDatetime, getSolidDataset, getThing, getThingAll, getUrl, getUrlAll, SolidDataset, Thing, Url, UrlString, WebId, WithServerResourceInfo } from "@inrupt/solid-client";
+import { asUrl, getDatetime, getSolidDataset, getThing, getThingAll, getUrl, getUrlAll, removeUrl, SolidDataset, Thing, Url, UrlString, WebId, WithServerResourceInfo } from "@inrupt/solid-client";
 import { DCTERMS, RDF, RDFS } from "@inrupt/vocab-common-rdf";
+import { remove } from "@vue/shared";
 import { getProfileAllWithIndexes, ProfileAllWithIndexes } from "./profileTypeIndex";
 import { SIOC, SIOCT, SOLID } from "./vocab";
 
@@ -168,14 +169,25 @@ export async function getExtendedThingFrom(
     thing: Thing,
     options: Partial<typeof internal_defaultFetchOptions> = internal_defaultFetchOptions
 ): Promise<Thing> {
-    return (await Promise.allSettled(
-        getUrlAll(thing, RDFS.seeAlso).map((url) => getSolidDataset(url, options))
-    )).filter(
-        (result): result is PromiseFulfilledResult<SolidDataset & WithServerResourceInfo> => 
-            result.status === "fulfilled"
-    ).map(
-        (successfulResult) => getThing(successfulResult.value, asUrl(thing))
-    ).reduce(mergeThing, thing);
+    const visitedUrls = new Set();
+    let newThing = thing;
+    let urlsToDo = getUrlAll(newThing, RDFS.seeAlso).filter((url) => !visitedUrls.has(url));
+    while (urlsToDo.length) {
+        newThing = (await Promise.allSettled(
+            urlsToDo.map((url) => {
+                visitedUrls.add(url);
+                return getSolidDataset(url, options);
+            })
+        )).filter(
+            (result): result is PromiseFulfilledResult<SolidDataset & WithServerResourceInfo> => 
+                result.status === "fulfilled"
+        ).map(
+            (successfulResult) => getThing(successfulResult.value, asUrl(newThing))
+        ).reduce(mergeThing, newThing);
+        urlsToDo.forEach((url) => newThing = removeUrl(newThing, RDFS.seeAlso, url));
+        urlsToDo = getUrlAll(newThing, RDFS.seeAlso);
+    }
+    return newThing;
 }
 
 export async function getChatMessageUrlAllFrom(
