@@ -28,4 +28,10 @@ export default {
     background: #fffd;
     cursor: pointer;
 }
+
+.editable input {
+    border: none;
+    font: inherit;
+    display: inherit;
+}
 </style>
