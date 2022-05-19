@@ -5,6 +5,7 @@ import { SIOC } from "../modules/vocab";
 import { getChatMessageAllFrom, getChatMessageAllPast } from "../modules/chatappExplorationFunctions";
 import { postChatMessage } from "../modules/chatappCreationFunctions";
 import ChatMessage from "../components/ChatMessage.vue";
+import Loading from "../components/Loading.vue";
 import { DateTime } from 'luxon';
 
 export default {
@@ -20,7 +21,7 @@ export default {
             currentMessage: '',
             interval: null,
             _lastFetch: null,
-            console: console
+            messagesLoaded: false
         }
     },
     computed: {
@@ -68,13 +69,15 @@ export default {
         }
     },
     async created() {
+        await this.fetchNewMessages();
+        this.messagesLoaded = true;
         this.interval = setInterval(this.fetchNewMessages, 5000);
         console.log();
     },
     beforeUnmount() {
         clearInterval(this.interval);
     },
-    components: { ChatMessage }
+    components: { ChatMessage, Loading }
 
 }
 </script>
@@ -93,6 +96,7 @@ export default {
                     <ChatMessage :message="message" />
                 </li>
             </ol>
+            <Loading v-if="!messagesLoaded" class="center" size="48px" />
         </div>
         <div>
             <input v-model="currentMessage" @beforeinput="(e) => { if (e.inputType === 'insertLineBreak') sendMessage(e); }">
@@ -106,6 +110,13 @@ export default {
 </div>
 </template>
 <style>
+.center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
 .chatroom {
     height: 100%;
     max-height: 100%;
@@ -148,6 +159,7 @@ export default {
 
 
 .chatroom > section > div:first-child {
+    position: relative;
     display: flex;
     flex-direction: column-reverse;
     padding: 2rem;
@@ -161,9 +173,9 @@ export default {
 
 .chatroom > section > div:last-child {
     width: 90%;
-    height: 2rem;
+    height: 2.1rem;
     padding: 2px;
-    margin: 2px auto;
+    margin: 4px auto;
     border: 1px solid blue;
     border-radius: 10px;
 }
@@ -190,7 +202,7 @@ export default {
 
 .chatroom > section > div > button {
     width: 10%;
-    height: 90%;
+    height: 100%;
 }
 
 .chatroom > section > div > button > svg {
@@ -200,6 +212,10 @@ export default {
 
 .chatroom > section > div > button > svg:hover {
     cursor: pointer;
+}
+
+.chatroom > section > div > button > svg:hover > .send {
+    fill: rgb(89, 147, 167);
 }
 
 .send {

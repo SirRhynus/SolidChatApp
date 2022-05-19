@@ -62,7 +62,7 @@ html, body {
   flex-grow: 1;
 }
 
-#app > .chatroom, #app > .profile-info {
+#app > .chatroom, #app > .profile {
   flex-grow: 5;
 }
 
@@ -84,6 +84,7 @@ html, body {
   width: max-content;
   opacity: 0;
   transition: opacity 0.5s ease-in-out;
+  z-index: 50;
 }
 
 [data-tooltip]:hover:after {

@@ -33,7 +33,10 @@ export default {
 <template>
 <div class="friend">
     <Image :src="image"/>
-    <h3>{{ name }}</h3>
+    <div class="col">
+        <h3>{{ name }}</h3>
+        <p>{{ webId }}</p>
+    </div>
     <button class="delete" @click="remove">&#10060;</button>
 </div>
 </template>
@@ -45,6 +48,14 @@ export default {
     flex-direction: row;
     align-items: center;
     justify-content: space-between;
+}
+
+.friend > .col > * {
+    margin: auto 0.2rem;
+}
+
+.friend > .col > p {
+    font-size: small;
 }
 
 .friend > .delete {

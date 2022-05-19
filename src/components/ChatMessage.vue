@@ -44,9 +44,9 @@ export default {
 </template>
 <template v-else>
     <div class="message left">
-        <Image :src="author.image" size="80"/>
+        <Image :src="author.image" size="80" :data-tooltip="message.author"/>
         <div>
-            <p><b>{{ author.name }}</b> <em>{{ formattedCreated }}</em></p>
+            <p><b :data-tooltip="message.author">{{ author.name }}</b> <em>{{ formattedCreated }}</em></p>
             <p>{{ message.content }}</p>
         </div>
     </div>
@@ -57,6 +57,7 @@ export default {
     display: flex;
     flex-direction: row;
     align-items: center;
+    margin: 0.3rem 0;
 }
 
 .message.right {
@@ -71,7 +72,19 @@ export default {
 
 .message > div {
     display: flex;
-    flex-direction: column;    
+    flex-direction: column;
+}
+
+.message.left > div {
+    align-items: flex-start;
+}
+
+.message.right > div {
+    align-items: flex-end;
+}
+
+.message > div > * {
+    margin: 0 0.5rem;
 }
 
 .message > div > p:first-child > em {
@@ -81,5 +94,6 @@ export default {
 .message > div > p:last-child {
     border: 1px solid darkblue;
     border-radius: 10px;
+    padding: 0.5rem 2rem;
 }
 </style>

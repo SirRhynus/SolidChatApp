@@ -28,6 +28,11 @@ export default {
         this.updateProfile();
     },
     methods: {
+        copyOnClick(e) {
+            e.srcElement.classList.add('clicked');
+            navigator.clipboard.writeText(this.url);
+            setTimeout(() => e.srcElement.classList.remove('clicked'), 3000);
+        },
         async updateProfile() {
             const profileDataset = await getSolidDataset(this.session.info.webId, {
                 fetch: this.session.fetch
@@ -60,13 +65,14 @@ export default {
 <div class="profile">
     <div class="profile-info">
         <div class="col">
-            <h2 title="name" class="editable" data-tooltip="Click to edit"><input v-model="name" @focusout="submitName"></h2>
+            <p data-tooltip="Click to copy" @click="copyOnClick">{{ this.session.info.webId }}</p>
+            <h2 title="name" class="editable" data-tooltip="Click to edit"><input :empty="name === '' ? true : false" v-model="name" @focusout="submitName"></h2>
             <div class="row">
                 <label>Nickname: </label>
-                <p title="nickname" class="editable" data-tooltip="Click to edit"><input v-model="nickname" @focusout="submitNick"></p>
+                <p title="nickname" class="editable" data-tooltip="Click to edit"><input :empty="nickname === '' ? true : false" v-model="nickname" @focusout="submitNick"></p>
             </div>
         </div>
-        <Editable @edit="showImageForm = true"><Image size="100" :src="image" /></Editable>
+        <Editable @edit="showImageForm = true"><Image size="130" :src="image" /></Editable>
     </div>
     <hr>
     <div class="friends">
@@ -97,12 +103,37 @@ export default {
     }
 
     .profile-info > * {
-        margin: 3rem;
+        margin: 1rem 3rem;
+    }
+
+    .profile-info > .col > p[data-tooltip] {
+        text-decoration: dotted underline;
+        transition: unset;
+    }
+
+    .profile-info > .col > p[data-tooltip]:hover {
+        cursor: pointer;
+    }
+
+    .profile-info > .col > p[data-tooltip].clicked {
+        font-weight: bold;
+    }
+
+    .profile-info > .col > p[data-tooltip].clicked::after {
+        content: 'Copied!';
     }
 
     .col {
         display: flex;
         flex-direction: column;
+    }
+
+    .col p, .col h2,  .col label {
+        margin: 0.5rem 0.2rem;
+    }
+
+    .col h2 {
+        margin-left: 0;
     }
 
     .row {
@@ -115,10 +146,21 @@ export default {
     .friends {
         position: relative;
         flex-grow: 1;
+        border-top: 2px solid black;
+    }
+
+    .friends > h2 {
+        text-decoration: underline;
     }
 
     .friends > ul {
         list-style: none;
         overflow-y: scroll;
+    }
+
+    .friends > .new-button {
+        position: absolute;
+        left: 3px;
+        bottom: 3px;
     }
 </style>

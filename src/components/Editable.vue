@@ -34,4 +34,8 @@ export default {
     font: inherit;
     display: inherit;
 }
+
+.editable input[empty=true] {
+    border-bottom: 1px solid gray;
+}
 </style>

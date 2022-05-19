@@ -76,6 +76,8 @@ div.new-button > button {
 .new-button > div > * {
     padding: 0.3rem;
     margin: 0.3rem;
+    border: none;
+    background: inherit;
 }
 
 .new-button > div > *:hover {

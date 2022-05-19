@@ -74,10 +74,6 @@ export default {
 </div>
 </template>
 <style>
-#test {
-    bottom: 100px;
-}
-
 .overview {
     position: relative;
     width: 18rem;
@@ -104,6 +100,10 @@ export default {
     cursor: pointer;
 }
 
+#my-profile:hover > h2 {
+    text-decoration: dotted underline;
+}
+
 #chatrooms {
     list-style: none;
 }
@@ -113,7 +113,7 @@ export default {
 }
 
 #chatrooms > li:hover {
-    border: 1px solid grey;
+    text-decoration: dotted underline;
     cursor: pointer;
 }
 
