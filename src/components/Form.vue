@@ -60,4 +60,9 @@ form.fixed .row {
     flex-direction: row;
     justify-content: space-around;
 }
+
+form.fixed input {
+    width: 40rem;
+    height: 1.8rem;
+}
 </style>
