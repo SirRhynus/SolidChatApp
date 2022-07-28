@@ -16,7 +16,7 @@ export default {
 <section id="login">
     <label>Login with your identity provider</label>
     <div class="row">
-        <input type="url" placeholder="https://your-identity-provider" value="https://groep25.webdev.ilabt.imec.be/" >
+        <input type="url" placeholder="https://your-identity-provider" >
         <button @click="() => loginToIssuer($el.querySelector('input[type=url]').value)">Go</button>
     </div>
     <label>Or pick an identity provider from the list below:</label>
