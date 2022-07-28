@@ -1,11 +1,11 @@
-# The Plan
+# A Decentralized Solid Chat App
 
-[The Plan](./plan/README.md)
+This project is a decentralized chat app using [https://solidproject.org/](Solid) technologies. It uses the [SIOC ontology](http://rdfs.org/sioc/spec/#) to describe chatrooms and chatmessages. It uses the [https://vuejs.org/](VueJS) framework.
 
-# Vue 3 + Vite
+## Build
 
-This template should help get you started developing with Vue 3 in Vite. The template uses Vue 3 `<script setup>` SFCs, check out the [script setup docs](https://v3.vuejs.org/api/sfc-script-setup.html#sfc-script-setup) to learn more.
+`npm run build`
 
-## Recommended IDE Setup
+## Acknowledgements
 
-- [VS Code](https://code.visualstudio.com/) + [Volar](https://marketplace.visualstudio.com/items?itemName=johnsoncodehk.volar)
+This project is an assignment for a WebDevelopment course for university.
